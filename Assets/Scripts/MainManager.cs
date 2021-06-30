@@ -26,7 +26,7 @@ public class MainManager : MonoBehaviour
     private int m_Points;
     private int m_Highscore; 
     
-    private bool m_GameOver = false;
+    private bool m_GameOver = false; 
 
     
     // Start is called before the first frame update
@@ -78,18 +78,27 @@ public class MainManager : MonoBehaviour
     
     private void Init()
     {
-        const float step = 0.6f;
-        int perLine = Mathf.FloorToInt(4.0f / step);
 
-        int[] pointCountArray = new[] { 1, 1, 2, 2, 5, 5 };
-        for (int i = 0; i < LineCount; ++i)
+
+        if (SceneManager.GetActiveScene().buildIndex == 1)
         {
-            for (int x = 0; x < perLine; ++x)
+
+            username = UIManager.Instance.username;
+            ScoreText.text = $"Score - {username} : {m_Points}";
+
+            const float step = 0.6f;
+            int perLine = Mathf.FloorToInt(4.0f / step);
+
+            int[] pointCountArray = new[] { 1, 1, 2, 2, 5, 5 };
+            for (int i = 0; i < LineCount; ++i)
             {
-                Vector3 position = new Vector3(-1.5f + step * x, 2.5f + i * 0.3f, 0);
-                var brick = Instantiate(BrickPrefab, position, Quaternion.identity);
-                brick.PointValue = pointCountArray[i];
-                brick.onDestroyed.AddListener(AddPoint);
+                for (int x = 0; x < perLine; ++x)
+                {
+                    Vector3 position = new Vector3(-1.5f + step * x, 2.5f + i * 0.3f, 0);
+                    var brick = Instantiate(BrickPrefab, position, Quaternion.identity);
+                    brick.PointValue = pointCountArray[i];
+                    brick.onDestroyed.AddListener(AddPoint);
+                }
             }
         }
     }
@@ -97,19 +106,14 @@ public class MainManager : MonoBehaviour
     void AddPoint(int point)
     {
         m_Points += point;
-        ScoreText.text = $"Score : {m_Points}";
-
-        if(m_Points > m_Highscore)
-        {
-            HighScoreText.text = $"Highscore - {username} : {m_Points}";
-        }
+        ScoreText.text = $"Score - {username} : {m_Points}";
     }
 
     public void GameOver()
     {
         if (m_Points > m_Highscore)
         {
-            m_Highscore = m_Points;
+            m_Highscore = m_Points; 
             SaveScore(); 
         }
         m_GameOver = true;
@@ -137,10 +141,25 @@ public class MainManager : MonoBehaviour
             string json = File.ReadAllText(path);
             SaveData data = JsonUtility.FromJson<SaveData>(json);
 
-            m_Highscore = data.score; 
+            m_Highscore = data.score;
 
+            if(UIManager.Instance.HighScorePanel != null)
+            UIManager.Instance.HighScorePanel.text = $"{data.name}\n{data.score}";
+            if(HighScoreText != null)
             HighScoreText.text = $"Highscore - {data.name} : {data.score}";
         }
+    }
+
+    public void ResetScore()
+    {
+        SaveData data = new SaveData();
+
+        data.name = "";
+        data.score = 0;
+
+        string json = JsonUtility.ToJson(data);
+
+        File.WriteAllText(Application.persistentDataPath + "/savefile.json", json);
     }
 
     [System.Serializable]

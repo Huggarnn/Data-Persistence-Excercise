@@ -10,8 +10,36 @@ using UnityEditor;
 
 public class UIManager : MonoBehaviour
 {
+    private static UIManager instance;
+    public static UIManager Instance
+    {
+        get { return instance; }
+    }
     public Text Namefield;
-    public GameObject Error; 
+    public GameObject Error;
+    public string username;
+
+    public Text HighScorePanel;
+
+    [SerializeField]
+    private GameObject startMenu;
+
+    private void Awake()
+    {
+        if(instance != null)
+        {
+            Destroy(this.gameObject);
+            return; 
+        }
+
+        instance = this;
+        DontDestroyOnLoad(gameObject); 
+    }
+
+    private void HideMenu()
+    {
+        startMenu.SetActive(false); 
+    }
 
     public void ShowErrorPromt()
     {
@@ -26,10 +54,16 @@ public class UIManager : MonoBehaviour
         if (Namefield.text.Length == 0) ShowErrorPromt();
         else
         {
-            if(MainManager.Instance != null) MainManager.Instance.username = Namefield.text; 
+            username = Namefield.text;
+            HideMenu(); 
             SceneManager.LoadScene(1);
         }
 
+    }
+    public void ResetScore()
+    {
+        MainManager.Instance.ResetScore();
+        MainManager.Instance.LoadHighScore(); 
     }
 
     public void Exit()
@@ -41,4 +75,5 @@ public class UIManager : MonoBehaviour
 #endif
 
     }
+
 }
